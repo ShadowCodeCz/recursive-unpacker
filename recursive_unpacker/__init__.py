@@ -216,7 +216,7 @@ def main():
     copy_parser.set_defaults(func=unpack_copy)
     copy_parser.add_argument("-i", "--input_directory", default=".")
 
-    file_parser = subparsers.add_parser('file')
+    file_parser = subparsers.add_parser('file', help="Unpack specific file")
     file_parser.set_defaults(func=unpack_file)
     file_parser.add_argument("-a", "--archive", required=True)
 
