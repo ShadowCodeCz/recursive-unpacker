@@ -85,6 +85,12 @@ class RecursiveUnpacker:
     def relative_suffixes(self):
         return [suffix for suffix in self.all_supported_suffixes if suffix not in self.exclusions]
 
+    def isArchive(self, file):
+        for suffix in self.relative_suffixes:
+            if file.endswith(suffix):
+                return True
+        return False
+
     # TODO: User specific path / filename limitations
     # TODO: Auto prefix or suffix filenames
     def unpack(self, archive, output_directory, clean_flag=True):
@@ -154,11 +160,36 @@ def unpack_all(arguments):
     unpacker.logger.setLevel(int(arguments.logger_level))
     unpacker.add_exclusions(arguments.exclusions)
 
-    files = [f for f in os.listdir(".") if os.path.isfile(f)]
+    files = [f for f in os.listdir(arguments.input_directory) if os.path.isfile(f)]
     for suffix in unpacker.relative_suffixes:
         for file in files:
             if file.endswith(suffix):
                 unpacker.unpack(file, arguments.output_directory)
+
+
+def unpack_copy(arguments):
+    unpacker = RecursiveUnpacker()
+    unpacker.logger.setLevel(int(arguments.logger_level))
+    unpacker.add_exclusions(arguments.exclusions)
+
+    for root, dirs, files in os.walk(arguments.input_directory):
+        for file in files:
+            unpacker.logger.debug(f"------------ Copy sub cmd: copy_or_unpack_file({file}) ------------")
+            copy_or_unpack_file(unpacker, root, file, arguments.output_directory)
+
+
+def copy_or_unpack_file(unpacker, root, file, root_output_directory):
+    output_directory = os.path.join(root_output_directory, root, os.path.dirname(file))
+    unpacker.logger.debug(f"root: {root}, file: {file}, root_output_directory: {root_output_directory}, output_directory: {output_directory}")
+    os.makedirs(output_directory, exist_ok=True)
+    source = os.path.join(root, file)
+    destination = os.path.join(output_directory, os.path.basename(file))
+    if unpacker.isArchive(file):
+        unpacker.logger.debug(f"Unpack file '{source}' to '{destination}'")
+        unpacker.unpack(source, destination)
+    else:
+        unpacker.logger.debug(f"Copy file '{source}' to '{destination}'.")
+        shutil.copy2(source, destination)
 
 
 def unpack_file(arguments):
@@ -180,6 +211,10 @@ def main():
     all_parser = subparsers.add_parser('all')
     all_parser.set_defaults(func=unpack_all)
     all_parser.add_argument("-i", "--input_directory", default=".")
+
+    copy_parser = subparsers.add_parser('copy')
+    copy_parser.set_defaults(func=unpack_copy)
+    copy_parser.add_argument("-i", "--input_directory", default=".")
 
     file_parser = subparsers.add_parser('file')
     file_parser.set_defaults(func=unpack_file)
