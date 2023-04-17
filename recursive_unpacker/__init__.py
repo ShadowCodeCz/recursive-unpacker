@@ -208,11 +208,11 @@ def main():
 
     subparsers = parser.add_subparsers()
 
-    all_parser = subparsers.add_parser('all')
+    all_parser = subparsers.add_parser('all', help="It unpacks all archives in input directory. It does not unpack archives in sub directories.")
     all_parser.set_defaults(func=unpack_all)
     all_parser.add_argument("-i", "--input_directory", default=".")
 
-    copy_parser = subparsers.add_parser('copy')
+    copy_parser = subparsers.add_parser('copy', help="It copies all files and sub directories from input directory to output directory. Archives will be unpacked.")
     copy_parser.set_defaults(func=unpack_copy)
     copy_parser.add_argument("-i", "--input_directory", default=".")
 
