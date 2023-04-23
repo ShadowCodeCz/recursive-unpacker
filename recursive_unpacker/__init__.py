@@ -167,18 +167,20 @@ def unpack_all(arguments):
                 unpacker.unpack(file, arguments.output_directory)
 
 
+# TODO: Test it with full paths
 def unpack_copy(arguments):
     unpacker = RecursiveUnpacker()
     unpacker.logger.setLevel(int(arguments.logger_level))
     unpacker.add_exclusions(arguments.exclusions)
 
-    for root, dirs, files in os.walk(arguments.input_directory):
+    for root, dirs, files in list(os.walk(arguments.input_directory)):
         for file in files:
             unpacker.logger.debug(f"------------ Copy sub cmd: copy_or_unpack_file({file}) ------------")
             copy_or_unpack_file(unpacker, root, file, arguments.output_directory)
 
 
 def copy_or_unpack_file(unpacker, root, file, root_output_directory):
+    # TODO: Exception handling
     output_directory = os.path.join(root_output_directory, root, os.path.dirname(file))
     unpacker.logger.debug(f"root: {root}, file: {file}, root_output_directory: {root_output_directory}, output_directory: {output_directory}")
     os.makedirs(output_directory, exist_ok=True)
@@ -215,6 +217,7 @@ def main():
     copy_parser = subparsers.add_parser('copy', help="It copies all files and sub directories from input directory to output directory. Archives will be unpacked.")
     copy_parser.set_defaults(func=unpack_copy)
     copy_parser.add_argument("-i", "--input_directory", default=".")
+    # TODO: follow symbolic links
 
     file_parser = subparsers.add_parser('file', help="Unpack specific file")
     file_parser.set_defaults(func=unpack_file)
