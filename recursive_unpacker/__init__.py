@@ -169,14 +169,18 @@ def unpack_all(arguments):
 
 # TODO: Test it with full paths
 def unpack_copy(arguments):
-    unpacker = RecursiveUnpacker()
-    unpacker.logger.setLevel(int(arguments.logger_level))
-    unpacker.add_exclusions(arguments.exclusions)
+    copy(arguments.input_directory, arguments.output_directory, arguments.logger_level, arguments.exclusions)
 
-    for root, dirs, files in list(os.walk(arguments.input_directory)):
+
+def copy(input_directory, output_directory, logger_level, exclusions):
+    unpacker = RecursiveUnpacker()
+    unpacker.logger.setLevel(int(logger_level))
+    unpacker.add_exclusions(exclusions)
+
+    for root, dirs, files in list(os.walk(input_directory)):
         for file in files:
             unpacker.logger.debug(f"------------ Copy sub cmd: copy_or_unpack_file({file}) ------------")
-            copy_or_unpack_file(unpacker, root, file, arguments.output_directory)
+            copy_or_unpack_file(unpacker, root, file, output_directory)
 
 
 def copy_or_unpack_file(unpacker, root, file, root_output_directory):
@@ -200,6 +204,7 @@ def unpack_file(arguments):
     unpacker.add_exclusions(arguments.exclusions)
     unpacker.unpack(arguments.archive, arguments.output_directory)
 
+# app_core
 
 def main():
     parser = argparse.ArgumentParser(description="Recursive Unpacker", formatter_class=argparse.RawTextHelpFormatter)
