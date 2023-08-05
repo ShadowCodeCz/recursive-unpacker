@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 import shutil
 import patoolib
 import logging
@@ -172,16 +173,23 @@ def unpack_copy(arguments):
     copy(arguments.input_directory, arguments.output_directory, arguments.logger_level, arguments.exclusions)
 
 
-def copy(input_directory, output_directory, logger_level, exclusions):
+def copy(input_directory, output_directory, logger_level, archive_exclusions, re_files_exclusions):
     unpacker = RecursiveUnpacker()
     unpacker.logger.setLevel(int(logger_level))
-    unpacker.add_exclusions(exclusions)
+    unpacker.add_exclusions(archive_exclusions)
 
     for root, dirs, files in list(os.walk(input_directory)):
         for file in files:
-            unpacker.logger.debug(f"------------ Copy sub cmd: copy_or_unpack_file({file}) ------------")
-            copy_or_unpack_file(unpacker, root, file, output_directory)
+            if not re_file_exclusion(file, re_files_exclusions):
+                unpacker.logger.debug(f"------------ Copy sub cmd: copy_or_unpack_file({file}) ------------")
+                copy_or_unpack_file(unpacker, root, file, output_directory)
 
+
+def re_file_exclusion(file, re_files_exclusions):
+    for pattern in re_files_exclusions:
+        if re.match(pattern, file):
+            return True
+    return False
 
 def copy_or_unpack_file(unpacker, root, file, root_output_directory):
     # TODO: Exception handling
